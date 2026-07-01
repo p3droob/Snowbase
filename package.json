@@ -1,0 +1,58 @@
+{
+  "name": "snowbase",
+  "version": "6.0.0",
+  "description": "A lightweight local JSON database for modern JavaScript projects.",
+  "keywords": [
+    "file-database",
+    "local storage",
+    "database",
+    "json",
+    "crypto",
+    "lightweight",
+    "db"
+  ],
+  "homepage": "https://github.com/p3droob/snowbase#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/p3droob/snowbase"
+  },
+  "bugs": {
+    "url": "https://github.com/p3droob/snowbase/issues"
+  },
+  "license": "MIT",
+  "author": "p3droob",
+  "main": "./src/Snowbase.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/Snowbase.js",
+    "./async": "./src/SnowbaseAsync.js"
+  },
+  "bin": {
+    "snowbase": "./bin/snowbase.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node test/index.js",
+    "test:comprehensive": "node test/comprehensive.js",
+    "test:async": "node test/indexAsync.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2"
+  }
+}
