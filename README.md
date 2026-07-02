@@ -226,4 +226,4 @@ snowbase has
 
 ## License
 
-MIT
+MIT @ Pedro Henrique Brandão (p3droob)
