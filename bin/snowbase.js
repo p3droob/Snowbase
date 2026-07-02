@@ -55,6 +55,14 @@ ${chalk.bold("SNOWBASE COMMANDS")}
 
   ${chalk.blue("clear")}  Clear the database file
 
+  ${chalk.blue("get")}  Get the value of a key
+
+  ${chalk.blue("set")}  Set the value of a key
+
+  ${chalk.blue("remove")}  Remove a key from the database
+
+${chalk.blue("has")}  Check if a key exists in the database
+
   ============================================================
 ${chalk.bold("COMPILER OPTION")}
 
@@ -77,7 +85,17 @@ if (!cmd) {
   console.log(helpMessage);
 }
 
-const commands = ["init", "inspect", "backup", "clear", "restore", "get", "set", "remove", "has"];
+const commands = [
+  "init",
+  "inspect",
+  "backup",
+  "restore",
+  "clear",
+  "get",
+  "set",
+  "remove",
+  "has",
+];
 if (cmd) {
   let config = {
     baseDir: "./snowbase",
@@ -207,10 +225,14 @@ if (cmd) {
         } else
           console.log(
             chalk.red("Decryption failed, please provide a valid secret"),
-            'Example: snowbase restore --secret <secret> --restoreFile <backup-ID>',
+            "Example: snowbase restore --secret <secret> --restoreFile <backup-ID>",
           );
       } else {
-        console.log(chalk.red(`Backup file ${backupFile} does not exist. Check the backup ID or if the dir exists`));
+        console.log(
+          chalk.red(
+            `Backup file ${backupFile} does not exist. Check the backup ID or if the dir exists`,
+          ),
+        );
       }
       break;
     }
@@ -276,12 +298,14 @@ if (cmd) {
       else console.log(db.get(config.key));
       break;
     }
+
     case "remove": {
       let run = db.remove(config.key);
       if (run) console.log(chalk.green("Value removed successfully"));
       else console.log(chalk.red("Value not removed"));
       break;
     }
+
     case "has": {
       let run = db.has(config.key);
       console.log(run);

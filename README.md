@@ -78,6 +78,11 @@ const db = new Snowbase();
 db.on("ready", () => {
   console.log("Database is ready");
 });
+
+//Multiples database
+const db1 = new Snowbase({ baseDir: "storage" });
+const db2 = new Snowbase({ baseDir: "database" }); // creates an isolated new Snowbase storage
+// You need to specify the baseDir if use the CLI
 ```
 
 ### Basic operations
