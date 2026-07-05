@@ -1,6 +1,6 @@
 {
   "name": "snowbase",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "description": "A lightweight local JSON database for modern JavaScript projects.",
   "keywords": [
     "file-database",
