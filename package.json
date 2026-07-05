@@ -40,7 +40,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p jsconfig.json && echo Typecheck OK",
     "test": "node test/index.js",
     "test:comprehensive": "node test/comprehensive.js",
     "test:async": "node test/indexAsync.js"

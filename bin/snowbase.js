@@ -61,10 +61,10 @@ ${chalk.bold("SNOWBASE COMMANDS")}
 
   ${chalk.blue("remove")}  Remove a key from the database
 
-${chalk.blue("has")}  Check if a key exists in the database
+  ${chalk.blue("has")}  Check if a key exists in the database
 
   ============================================================
-${chalk.bold("COMPILER OPTION")}
+${chalk.bold("COMPILER OPTIONS")}
 
   ${chalk.blue("--baseDir")} The directory where the database is located. Default: ./snowbase
 
@@ -77,6 +77,10 @@ ${chalk.bold("COMPILER OPTION")}
   ${chalk.blue("--backup")} Enables backup. Default: false
 
   ${chalk.blue("--restoreFile")} The backup file to restore. Default: ""
+
+  ${chalk.blue("--path")} The path to get value. Default: undefined
+
+  ${chalk.blue("--value")} The value to set. Default: undefined
   
 ${chalk.bold("EXAMPLE")}
   ${chalk.yellow('snowbase init --baseDir "./snowbase" --encryption --secret "mysecret" --logging --backup')}
@@ -96,7 +100,7 @@ const commands = [
   "remove",
   "has",
 ];
-if (cmd) {
+if (cmd && commands.includes((cmd || "").toLocaleLowerCase())) {
   let config = {
     baseDir: "./snowbase",
     encryption: false,
@@ -117,49 +121,41 @@ if (cmd) {
       config[key] = true;
     }
   }
-  const db = new Snowbase(config);
+  let db = new Snowbase(config);
+
+  let all = db.get();
+  let keys = Object.keys(all || {});
+  let d = 0; //default
+  if (
+    keys.length === 4 &&
+    keys.sort().every((v, i) => v === ["data", "iv", "salt", "tag"][i])
+  ) {
+    d = 1; //encrypted/decrypted
+    console.log(chalk.blue("Database is encrypted, wait..."));
+    try {
+      all = db._decrypt(JSON.stringify(all), config.secret);
+    } catch (error) {
+      d = -1; //decryption failed
+    }
+  }
+  if (d === 1)
+    console.log(chalk.greenBright("Database decrypted successfully"));
+  if (d === 1) db = new Snowbase({ ...config, encryption: true }); //recreate db to avoid decryption issues
+  if (d === -1)
+    console.log(chalk.red("Decryption failed, please provide a valid secret"));
 
   switch (cmd) {
-    default: {
-      console.log(helpMessage);
-      const suggestion = suggestCommand(cmd, commands);
-      if (suggestion) {
-        console.log(`Did you mean ${chalk.blue(suggestion)}?`);
-      }
-      break;
-    }
-
     case "init": {
       console.log(`Snowbase initialized at ${db.baseDir}`);
       console.log(db.backupDir);
       break;
     }
     case "inspect": {
-      const all = db.get();
-      let keys = Object.keys(all || {});
-      let d = 0;
-      if (
-        keys.length === 4 &&
-        keys.sort().every((v, i) => v === ["data", "iv", "salt", "tag"][i])
-      ) {
-        d = 1;
-        console.log(chalk.blue("Database is encrypted, wait..."));
-        try {
-          keys = Object.keys(db._decrypt(JSON.stringify(all), config.secret));
-        } catch (error) {
-          d = -1;
-        }
-      }
-      if (d === 1)
-        console.log(chalk.greenBright("Database decrypted successfully"));
       if (d > -1) {
         console.log(`Number of keys: ${keys.length}`);
         console.log("Keys:", keys);
         console.log("Size of database:", JSON.stringify(all).length, " bytes");
-      } else
-        console.log(
-          chalk.red("Decryption failed, please provide a valid secret"),
-        );
+      }
       break;
     }
 
@@ -192,7 +188,7 @@ if (cmd) {
       if (fs.existsSync(backupFile)) {
         let fileData = fs.readFileSync(backupFile, "utf8");
         fileData = JSON.parse(fileData);
-        let keys = Object.keys(fileData || {});
+        keys = Object.keys(fileData || {});
         let d = 0;
         if (
           keys.length === 4 &&
@@ -238,78 +234,53 @@ if (cmd) {
     }
 
     case "clear": {
-      let all = db.get();
-      let keys = Object.keys(all || {});
-      let d = 0;
-      if (
-        keys.length === 4 &&
-        keys.sort().every((v, i) => v === ["data", "iv", "salt", "tag"][i])
-      ) {
-        d = 1;
-        console.log(chalk.blue("Database is encrypted, wait..."));
-        try {
-          all = db._decrypt(JSON.stringify(all), config.secret);
-        } catch (error) {
-          d = -1;
-        }
-      }
-      if (d === 1)
-        console.log(chalk.greenBright("Database decrypted successfully"));
       if (d > -1) {
         db.clear();
         console.log("Database cleared.");
-      } else
-        console.log(
-          chalk.red("Decryption failed, please provide a valid secret"),
-        );
+      }
       break;
     }
 
     case "get": {
-      let all = db.get();
-      let keys = Object.keys(all || {});
-      let d = 0;
-      if (
-        keys.length === 4 &&
-        keys.sort().every((v, i) => v === ["data", "iv", "salt", "tag"][i])
-      ) {
-        d = 1;
-        console.log(chalk.blue("Database is encrypted, wait..."));
-        try {
-          all = db._decrypt(JSON.stringify(all), config.secret);
-        } catch (error) {
-          d = -1;
-        }
-      }
-      if (d === 1)
-        console.log(chalk.greenBright("Database decrypted successfully"));
       if (d > -1) {
-        if (!config.key) console.log(all);
-        else console.log(db._getTargetFromData(all, config.key));
-      } else
-        console.log(
-          chalk.red("Decryption failed, please provide a valid secret"),
-        );
+        if (!config.path) console.log(all);
+        else console.log(db._getTargetFromData(all, config.path));
+      }
       break;
     }
 
     case "set": {
-      if (!config.key) console.log(db.get());
-      else console.log(db.get(config.key));
+      if (d > -1) {
+        console.log(db.set(config.path, config.value));
+      }
       break;
     }
 
     case "remove": {
-      let run = db.remove(config.key);
-      if (run) console.log(chalk.green("Value removed successfully"));
-      else console.log(chalk.red("Value not removed"));
+      if (d > -1) {
+        let run = db.remove(config.path);
+        if (run) console.log(chalk.green("Value removed successfully"));
+        else
+          console.log(
+            chalk.red("Value not removed"),
+            "Check if the path exists",
+          );
+      }
       break;
     }
 
     case "has": {
-      let run = db.has(config.key);
-      console.log(run);
+      if (d > -1) {
+        let run = db._getTargetFromData(all, config.path) !== undefined;
+        console.log(run);
+      }
       break;
     }
+  }
+} else if (cmd && !commands.includes((cmd || "").toLocaleLowerCase())) {
+  console.log(helpMessage);
+  const suggestion = suggestCommand(cmd, commands);
+  if (suggestion) {
+    console.log(`Did you mean ${chalk.blue(suggestion)}?`);
   }
 }
